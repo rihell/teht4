@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juna aikataulut Tampereelle</title>
+    <link rel="stylesheet" href="styles.css"> <!--CSS-tiedoston linkitys-->
+</head>
+<body>
+    <!--Navi palkki-->
+    <nav>
+        <ul>
+            <li><a href="liikennekamera.html">Liikennekamera</a></li>
+            <li><a href="junat.html">Junat</a></li>
+        </ul>
+    </nav>
+    <!--Sivun otsikot-->
+    <header>
+        <h1>Mennäänkö junalla Tampereelle?</h1>
+        <p>Kuinkahan usein junia menee?</p>
+    </header>
+    <div id="junat"></div>
+    <!--JavaScript koodi-->
+    <script>
+        // Haetaan Tampereen junat
+        fetch('https://rata.digitraffic.fi/api/v1/live-trains/station/tpe?departing_trains=10&include_nonstopping=false')
+        .then(response => response.json())
+        .then(data => {
+            console.log("Junadata: ", data); // Tarkistetaan data konsolista
+
+            // Kutsutaan funktiota, joka käsittelee junadata
+            naytaJunat(data);
+        })
+        .catch(error => {
+            document.getElementById("junat").innerHTML = "<p>Tietojen haku epäonnistui.</p>" + error; //Teksti, jos koodissa virhe
+        });
+
+        function naytaJunat(data) {
+            var teksti = "";  // Tyhjä muuttuja, johon lisätään junatiedot
+
+            // Käydään läpi jokainen juna
+            for (var i = 0; i < data.length; i++) {
+                // Käydään läpi aikataulutiedot
+                for (var j = 0; j < data[i].timeTableRows.length; j++) {
+
+                    // Tarkistetaan, onko asema Tampere (TPE) ja onko kyseessä lähtö (DEPARTURE)
+                    if (data[i].timeTableRows[j].stationShortCode == "TPE" && data[i].timeTableRows[j].type == "DEPARTURE") {
+                        
+                        // Tarkistetaan, onko juna pitkän matkan juna
+                        if (data[i].trainCategory == "Long-distance") {
+
+                            // Saadaan lähtöasema (indeksi 0)
+                            var lahtoasema = "Helsingistä"; // Muutetaan HKI Helsingiksi
+
+                            // Saadaan määränpää (viimeinen indeksi)
+                            var vika = data[i].timeTableRows.length - 1;
+                            var maaranpaa = "Tampereelle"; // Muutetaan TRE Tampereeksi
+
+                            // Päivämäärä ja aika
+                            var pvmLahdot = data[i].timeTableRows[0].scheduledTime; // Lähtöpäivämäärä
+                            var aikaLahdot = pvmLahdot.substr(0, 10) + " kello: " + pvmLahdot.substr(11, 5); // Lähtöaika
+
+                            var pvmSaapuu = data[i].timeTableRows[j].scheduledTime; // Saapumispäivämäärä
+                            var aikaSaapuu = pvmSaapuu.substr(0, 10) + " kello: " + pvmSaapuu.substr(11, 5); // Saapumisaika
+
+                            // Luodaan HTML-esitys tiedoista
+                            teksti += "<div class='juna-info'>";
+                            teksti += "<strong>Juna nro: " + data[i].trainNumber + "</strong><br>";  // Juna nro lihavoituna
+                            teksti += "Junan tyyppi: " + data[i].trainType + "<br>";  // Junatyyppi
+                            teksti += "Lähtee " + lahtoasema + " " + aikaLahdot + ". "; // Mistä juna lähtee ja aikaleima
+                            teksti += "Saapuu " + maaranpaa + " " + aikaSaapuu + "<br>"; // Mihin se saapuu ja aikaleima
+                            teksti += "</div>";
+                            teksti += "<hr>"; // Viiva junien väliin
+                        }
+                    }
+                }
+            }
+
+            // Näytetään tulokset HTML:ssä
+            document.getElementById("junat").innerHTML = teksti;
+        }
+    </script>
+</body>
+</html>

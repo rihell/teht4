@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liikennekamera tiedot Tampereella</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!--Navi palkki-->
+    <nav>
+        <ul>
+            <li><a href="liikennekamera.html">Liikennekamera</a></li>
+            <li><a href="junat.html">Junat</a></li>
+        </ul>
+    </nav>
+    <!--Sivun otsikot-->
+    <header>
+        <h1>Autolla Tampereelle</h1>
+        <p>Millainen keli siellä on?</p>
+    </header>
+    <div id="vastaus"></div>
+    <!--JavaScript koodi-->
+    <script>
+        fetch('https://tie.digitraffic.fi/api/weathercam/v1/stations/C04507/data')
+        .then(function (response) {
+            return response.json();
+        })
+        .then(function(data) {
+            console.log("Saapuva data: ", data); // Tulostetaan data tarkistusta varten
+            liikennekamera(data); // Käsitellään data liikennekamera-funktiossa
+            })
+        .catch(function(error) {
+            document.getElementById("vastaus").innerHTML =
+            "<p>Tietoja ei pysty hakemaan</p>" + error;
+        });
+
+        function liikennekamera(data) {
+            var teksti = "";
+
+            // Tarkistetaan, että data sisältää presets-taulukon
+            if (data && data.presets && Array.isArray(data.presets)) {
+            for (var i = 0; i < data.presets.length; i++) {
+                teksti += "<h3>Kamera ID: " + data.presets[i].id + "</h3>"; //En saanut kuvia toimimaan
+                teksti += "<p>Mitattu aika: " + data.presets[i].measuredTime + "</p>";//Mittausaika
+            }
+            } else {
+                teksti += "<p>Ei löydy kameradataa.</p>"; //Virhekoodin teksti
+            }
+            // Näytetään tulokset HTML:ssä
+            document.getElementById("vastaus").innerHTML = teksti;
+        }
+    </script>
+</body>
+</html>
